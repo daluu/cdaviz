@@ -22,7 +22,7 @@ At the moment, what is offered is a rough slightly dumbed down dashboard (simpli
 * better file management, user account management, and authentication/security for those - for enterprise and shared user usage
 * performance enhancements to better deal with really large datasets, maybe caching, as it still takes a while to load
 * saving visualized output so not need to rerender, when sharing the result with others, etc. e.g. export to SVG, PNG, PDF
-* visualization of data from other sources or formats (generically though, e.g. JSON, SQL/RDBMS, REST APIs, various noSQL DBs, space/tab-delimited data)
+* visualization of data from other sources or formats (generically though, e.g. JSON, SQL/RDBMS, REST APIs, various noSQL DBs, space/tab-delimited (TSV) data, getting CSV/TSV/JSON data from URLs rather than uploads (or files local to the server) )
 * add (generic) support for other visualizations/plots/charts (x/y line/scatter plots, more histograms, pie charts, etc.) besides what we currently offer (timeseries, histogram, table views)
 * improve existing visualization options (timeseries, histogram, table views) - giving them more options for visualization/rendering in terms of labeling, chart sizing, colors, fonts, line/bar sizing, etc.
 
