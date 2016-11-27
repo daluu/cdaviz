@@ -41,9 +41,9 @@ The dashboard should be roughly intuitive and self explanatory to use. Or just u
 
 The repo includes some sample data files for visual rendering demo (although you can find others online or use your own dataset). Below are some tips for the timeseries view (for what (custom) timestamp format to use/specify) and histogram (min, max bin values) to make it render correctly:
 
-* bl.ocks.org-mbostock-3883245.csv - time format: "%d-%b-%y", histogram min 100, max 600, bin 10
-* bl.ocks.org-mbostock-3884955.csv - time format: "%Y%m%d", histogram min 50, max 90, bin 10
-* somewhat-big-dataset.csv - time format: milliseconds, or ISO8601 "%Y-%m-%dT%H:%M:%S.%LZ", histogram min 0, max 10, bin 10
+* bl.ocks.org-mbostock-3883245.csv - time format: `%d-%b-%y`, histogram min 100, max 600, bin 10
+* bl.ocks.org-mbostock-3884955.csv - time format: `%Y%m%d`, histogram min 50, max 90, bin 10
+* somewhat-big-dataset.csv - time format: milliseconds, or ISO8601 `%Y-%m-%dT%H:%M:%S.%LZ`, histogram min 0, max 10, bin 10
 
 For testing out the histogram view, be sure to set the min & max bin values appropriately
 
