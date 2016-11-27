@@ -1,0 +1,260 @@
+<html>
+<head>
+<style>
+.menu-labels {
+  font-weight: bold;
+}
+
+.header {
+  background: #C7B097;
+}
+
+.table {
+  display: table;
+}
+
+.row  {
+  display: table-row;
+}
+
+.left, .right, .middle {
+  display: table-cell;
+}
+
+.legend rect {
+  fill:white;
+  stroke:black;
+  opacity:0.8;
+}
+</style>
+<script src="lib/common.js" charset="utf-8"></script>
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="lib/d3.legend.js"></script>
+<script src="//cdn.jsdelivr.net/jstat/1.5.2/jstat.min.js"></script>
+<script src="lib/generic_histogram.js" charset="utf-8"></script>
+<script src="lib/generic_table.js" charset="utf-8"></script>
+<script src="lib/generic_timeseries.js" charset="utf-8"></script>
+</head>
+<body>
+<div class="header">
+  <div class="table">
+    <div class="row">
+    	<div class="left">
+        <span class="menu-labels">Histogram only parameters:
+        </span>
+    	</div>&nbsp;&nbsp;&nbsp;
+      <div class="middle">
+        <span>Min value for bins, x-axis: &nbsp;</span>
+        <input id="min-bin-x" type="text" size="5" value="0"></input>
+    	</div>&nbsp;&nbsp;&nbsp;
+      <div class="middle">
+        <span>Max value for bins, x-axis: &nbsp;</span>
+        <input id="max-bin-x" type="text" size="5" value="10"></input>
+    	</div>&nbsp;&nbsp;&nbsp;
+      <div class="right">
+        <span># of bins: &nbsp;</span>
+        <input id="bin-size" type="text" size="3" value="10"></input>
+    	</div>&nbsp;&nbsp;&nbsp;
+  	</div>
+    <br/>
+  </div>
+  <div class="table">
+    <div class="row">
+      <div class="left">
+        <span class="menu-labels">Common parameters:
+        </span>
+    	</div>&nbsp;&nbsp;&nbsp;
+    	<div class="middle">Step 1:
+        <select id="visualization-selector">
+          <option value="default-opt">Which visualization?</option>
+          <option value="timeseries" selected>timeseries</option>
+          <option value="histogram">histogram</option>
+          <option value="table">table</option>
+        </select>
+    	</div>&nbsp;&nbsp;&nbsp;
+      <div class="middle">Step 2:
+        <select id="data-param-selector">
+          <option value="default-opt">Which parameters?</option>
+        </select>
+    	</div>&nbsp;&nbsp;&nbsp;
+      <div class="middle">Step 2b (timeseries only):
+        <select id="ts-param-selector">
+          <option value="default-opt">Which parameter as timestamp?</option>
+        </select>
+    	</div>&nbsp;&nbsp;&nbsp;
+      <div class="middle">Step 2c (timeseries only):
+        <select id="ts-format-selector">
+          <option value="default-opt">What timestamp format?</option>
+          <option value="seconds" selected>seconds since epoch</option>
+          <option value="ms">milliseconds since epoch</option>
+          <option value="custom">custom date format (defaults to ISO8601)</option>
+        </select>
+    	</div>&nbsp;&nbsp;&nbsp;
+      <div class="right">Step 3:
+        <input id="render-btn" type="button" value="Render visualization"></input>
+    	</div>
+  	</div>
+  </div>
+</div>
+<p id="note" style="font-weight: bold; color: red;"></p>
+<div id="whiteboard"></div>
+<script>
+var visualSelector = document.getElementById('visualization-selector');
+visualSelector.addEventListener("change", updateParamList, false);
+var paramSelector = document.getElementById('data-param-selector');
+var tsSelector = document.getElementById('ts-param-selector');
+var note = document.getElementById('note');
+var whiteboard = document.getElementById('whiteboard');
+document.getElementById('render-btn').addEventListener("click", renderVisualization, false);
+var csvData = null;
+var selectedCsv = localStorage.getItem("selectedCsv");
+var tsFormatter = document.getElementById("ts-format-selector");
+tsFormatter.addEventListener("change", updateTsFormat, false);
+var tsFormat = "seconds";
+
+var settings = {};
+settings.width = null;
+settings.height = null;
+settings.xAxisLabel = "Time";
+settings.yAxisLabel = "Value";
+
+function getCsvData(){
+  if(selectedCsv == null){
+    alert("Selected CSV file not found in cache, dashboard problem. Do you have HTML5 support for local storage?");
+    return;
+  }
+  note.innerHTML = "NOTE: depending on CSV filesize, it may take a while for the data to load and the UI interaction to work properly. You will be notified on load completion.";
+  var dataUrl = getBaseUrl() + "/api/csv/" + selectedCsv;
+  d3.csv(dataUrl, function(error, data) {
+    if (error){
+      alert("Failed to fetch data from selected CSV file on the server. Is network down? Otherwise, server issue.");
+      return console.log(error);
+    }
+    csvData = data;
+    updateParamList();
+    note.innerHTML = "NOTE: CSV data has been fully loaded.";
+  });
+}
+
+function updateParamList(){
+  resetParamFieldsState();
+
+  for(var field in csvData[0]){
+
+    /* For now, don't bother with checking which fields are timestamps
+     * and just add all to list, hoping user smart enough to decide on their own.
+     * Can add in regular expression checks later to filter for dates, times,
+     * timestamps, etc.
+     */
+    var opt = document.createElement("option");
+    opt.setAttribute("value",field);
+    var node = document.createTextNode(field);
+    opt.appendChild(node);
+    tsSelector.appendChild(opt);
+
+    /* also don't filter out any timestamp related fields here either
+     */
+    opt = document.createElement("option");
+    opt.setAttribute("value",field);
+    node = document.createTextNode(field);
+    opt.appendChild(node);
+    paramSelector.appendChild(opt);
+  }
+}
+
+function resetParamFieldsState(){
+  while (tsSelector.firstChild) tsSelector.removeChild(tsSelector.firstChild);
+  while (paramSelector.firstChild) paramSelector.removeChild(paramSelector.firstChild);
+
+  if(visualSelector.selectedOptions[0].value == "histogram"){
+    paramSelector.removeAttribute("multiple");
+  }else{ //for all other views
+    paramSelector.setAttribute("multiple","multiple");
+  }
+
+  var opt = document.createElement("option");
+  opt.setAttribute("value","default-opt");
+  var node = document.createTextNode("Which parameter as timestamp?");
+  opt.appendChild(node);
+  tsSelector.appendChild(opt);
+
+  opt = document.createElement("option");
+  opt.setAttribute("value","default-opt");
+  node = document.createTextNode("Which parameters?");
+  opt.appendChild(node);
+  paramSelector.appendChild(opt);
+}
+
+function renderVisualization(){
+
+  clearCanvasForNewVisual();
+
+  note.innerHTML = "NOTE: depending on amount of CSV data, it may take a while for the visualization to render, please be patient.";
+
+  var selectedCsvTsField = null, selectedCsvDataFields = [];
+
+  if(visualSelector.selectedOptions.length == 0){
+    alert("You didn't select a visualization type");
+    return;
+  }
+
+  if(paramSelector.selectedOptions.length == 0){
+    alert("You didn't select data parameter(s) to visualize for");
+    return;
+  }
+
+  for(var i = 0; i < paramSelector.selectedOptions.length; i++){
+    selectedCsvDataFields.push(paramSelector.selectedOptions[i].value);
+  }
+
+  switch(visualSelector.selectedOptions[0].value){
+    case "histogram":
+      //we only visualize one parameter for histograms, so preprocess data then render
+      var histogramData = [];
+      for(var i = 0; i < csvData.length; i++){
+        histogramData.push(csvData[i][selectedCsvDataFields[0]])
+      }
+      var binSize = parseInt(document.getElementById('bin-size').value);
+      var domain = {'min': 0, 'max': 0};
+      domain.min = parseInt(document.getElementById('min-bin-x').value);
+      domain.max = parseInt(document.getElementById('max-bin-x').value);
+      renderGenericHistogram("whiteboard",histogramData,domain,binSize);
+      note.innerHTML = "";
+      break;
+    case "table":
+      renderGenericTable("whiteboard",csvData,selectedCsvDataFields);
+      note.innerHTML = "";
+      break;
+    case "timeseries":
+    default:
+      if(tsSelector.selectedOptions.length == 0){
+        alert("You didn't select a timestamp field to use as x-axis for time series");
+        return;
+      }else{
+        renderGenericTimeseries("whiteboard",csvData,tsSelector.selectedOptions[0].value,selectedCsvDataFields,tsFormat,settings);
+        note.innerHTML = "";
+      }
+  }
+}
+
+function clearCanvasForNewVisual(){
+  //remove existing charts, histogram, etc.
+  while (whiteboard.firstChild) whiteboard.removeChild(whiteboard.firstChild);
+}
+
+function updateTsFormat(){
+  if(tsFormatter.selectedOptions[0].value == "custom"){
+    tsFormat = prompt("Please enter the custom date format (recognized by d3.js), leave empty for default of ISO8601: %Y-%m-%dT%H:%M:%S.%LZ");
+    if(tsFormat == null){
+      tsFormat = "";
+      alert("Warning: you cancelled the operation, please select the desired timestamp format again before proceeding or we'll assume you want default ISO8601: %Y-%m-%dT%H:%M:%S.%LZ");
+    } 
+  }else{
+    tstFormat = tsFormatter.selectedOptions[0].value;
+  }
+}
+
+getCsvData();
+</script>
+</body>
+</html>

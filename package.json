@@ -1,0 +1,27 @@
+{
+  "name": "cdaviz",
+  "version": "0.1.0",
+  "description": "General purpose CSV data visualization dashboard",
+  "main": "cdaviz.js",
+  "scripts": {
+    "start": "node cdaviz.js -v -a 0.0.0.0 -p 8080",
+    "test": "echo \"There are no tests to run.\" && exit 0"
+  },
+  "maintainers": [
+    "David Luu (https://github.com/daluu)"
+    ],
+  "keywords": [
+    "csv",
+    "dashboard",
+    "data",
+    "visualization"
+  ],
+  "license": "Unlicense",
+  "dependencies": {
+    "body-parser": "^1.15.0",
+    "express": "^4.13.3",
+    "multer": "^1.1.0",
+    "serve-static": "^1.10.1",
+    "yargs": "^3.31.0"
+  }
+}

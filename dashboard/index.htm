@@ -1,0 +1,136 @@
+<html>
+<head>
+<title>Generic CSV File Data Visualization Dashboard</title>
+<style>
+html, body {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+#frameContainer {
+    position: fixed;
+    height: 100%;
+    top:0px;
+    left: 400px;
+    right:0px;
+    bottom:0px;
+    z-index:1;
+}
+#main_iframe{
+    height: 100%;
+    width: 100%;
+}
+#nav {position:fixed;
+    background: #98AFC7;
+    left:0px;
+    top:0px;
+    bottom:0px;
+    width:400px;
+    z-index:2
+}
+</style>
+<script src="lib/common.js" charset="utf-8"></script>
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script>
+</script>
+</head>
+<body>
+<div id="nav">
+  <div id="selectors">
+    <select id="csv-selector">
+      <option>Select an existing CSV file...</option>
+    </select>
+  </div>
+  <p>
+  <input id="start-btn" type="button" value="Start Visualization">
+  </p>
+  <p>
+  <input id="download-csv-btn" type="button" value="Download selected CSV file">
+  </p>
+  <p>
+  <input id="del-csv-btn" type="button" value="Delete selected CSV file">
+  </p>
+  <p>
+    <form id="form" action="/api/csv" method="POST" enctype="multipart/form-data">
+      Import/Upload a new CSV file:
+      <input type="file" name="csvfile" id="csvfile">
+    </form>
+  </p>
+</div>
+<div id="frameContainer">
+<iframe id="main_iframe" frameborder="0" src="lib/placeholder.htm"></iframe>
+</div>
+<script>
+var csvSelector = document.getElementById('csv-selector');
+csvSelector.addEventListener("change", trackSelection, false);
+document.getElementById('start-btn').addEventListener("click", startVisualization, false);
+document.getElementById('del-csv-btn').addEventListener("click", deleteCsv, false);
+document.getElementById('download-csv-btn').addEventListener("click", downloadCsv, false);
+document.getElementById("csvfile").onchange = function() {
+    document.getElementById("form").submit();
+};
+var selectedCsv = null;
+var discoveredCsvs = [];
+
+function loadExistingCsvFiles(){
+  var dataUrl = getBaseUrl() + "/api/csv";
+  d3.json(dataUrl, function(error, data) {
+    if (error){
+      alert("Failed to fetch list of CSV files on the server. Is network down? Otherwise, server issue.");
+      return console.log(error);
+    }
+    discoveredCsvs = data;
+    createCsvList(discoveredCsvs);
+  });
+}
+
+loadExistingCsvFiles();
+
+function createCsvList(csvs){
+  for(var i = 0; i < csvs.length; i++){
+    var opt = document.createElement("option");
+    opt.setAttribute("value",csvs[i].filename);
+    opt.innerHTML = csvs[i].filename;
+    csvSelector.appendChild(opt);
+  }
+}
+
+function trackSelection(evt){
+  selectedCsv = evt.target.value;
+  localStorage.setItem("selectedCsv",selectedCsv);
+}
+
+function startVisualization(){
+  if(selectedCsv == null){
+    alert("No CSV file selected.");
+    return;
+  }
+  document.getElementById('main_iframe').src = "csv_dashboard.htm";
+}
+
+function deleteCsv(){
+  var dataUrl = getBaseUrl() + "/api/csv/" + selectedCsv;
+  var http = new XMLHttpRequest();
+  http.open("DELETE", dataUrl);
+  http.onreadystatechange = function() {
+    if(http.readyState == 4){
+      if(http.status == 200){
+        //console.log(selectedCsv+" deleted successfully");
+        location.reload(true);
+      }else{
+        console.log(http.status+": "+http.responseText);
+      }
+    }
+  };
+  http.send();
+}
+
+function downloadCsv(){
+  var dataUrl = getBaseUrl() + "/downloads/" + selectedCsv;
+  window.open(dataUrl,"_blank");
+}
+</script>
+</body>
+</html>
