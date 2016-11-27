@@ -28,7 +28,7 @@ At the moment, what is offered is a rough slightly dumbed down dashboard (simpli
 
 But it's at least a proof of concept and starting solution to work with. What I envision is a pluggable visual dashboard framework, where we have generic visualization modules and you can add which ones you need and visualize against your own dataset (ideally/generically in CSV but could be in other formats).
 
-## Requirements and Installation ## 
+## Requirements and Installation ##
 
 1. Clone this repo
 2. Run ```npm install``` from the cloned local repo
