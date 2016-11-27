@@ -16,7 +16,7 @@ What I found at the time was:
 
 And so finding things a bit lacking and hard to work with, I built my own solution with server component to take in uploaded CSVs and offer a simple management interface for them (select, download back, delete). And client side visualization using native d3.js.
 
-At the moment, what is offered is a rough slightly dumbed down dashboard (simplified from code I've used for work). Much could be improved like:
+At the moment, what is offered is a rough slightly simplified dashboard (simplified from code I've used for work). Much could be improved like:
 
 * better UI - I'm not a UI/UX person, so my UIs are comparatively 1990s basic.
 * better file management, user account management, and authentication/security for those - for enterprise and shared user usage
