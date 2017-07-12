@@ -26,6 +26,24 @@
   stroke:black;
   opacity:0.8;
 }
+
+.chart {
+
+}
+
+.main text {
+    font: 10px sans-serif;	
+}
+
+.axis line, .axis path {
+    shape-rendering: crispEdges;
+    stroke: black;
+    fill: none;
+}
+
+circle {
+    fill: steelblue;
+}
 </style>
 <script src="lib/common.js" charset="utf-8"></script>
 <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
@@ -34,6 +52,8 @@
 <script src="lib/generic_histogram.js" charset="utf-8"></script>
 <script src="lib/generic_table.js" charset="utf-8"></script>
 <script src="lib/generic_timeseries.js" charset="utf-8"></script>
+<script src="lib/generic_trendplot.js" charset="utf-8"></script>
+<script src="lib/regression.min.js"></script>
 </head>
 <body>
 <div class="header">
@@ -70,6 +90,7 @@
           <option value="timeseries" selected>timeseries</option>
           <option value="histogram">histogram</option>
           <option value="table">table</option>
+          <option value="trendplot">Trends plot (of x/y line/scatter plot)</option>
         </select>
     	</div>&nbsp;&nbsp;&nbsp;
       <div class="middle">Step 2:
@@ -77,9 +98,9 @@
           <option value="default-opt">Which parameters?</option>
         </select>
     	</div>&nbsp;&nbsp;&nbsp;
-      <div class="middle">Step 2b (timeseries only):
+      <div class="middle">Step 2b (timeseries, trend, x/y plots only):
         <select id="ts-param-selector">
-          <option value="default-opt">Which parameter as timestamp?</option>
+          <option value="default-opt">Which parameter as timestamp or x?</option>
         </select>
     	</div>&nbsp;&nbsp;&nbsp;
       <div class="middle">Step 2c (timeseries only):
@@ -207,6 +228,8 @@ function renderVisualization(){
     selectedCsvDataFields.push(paramSelector.selectedOptions[i].value);
   }
 
+  settings.xAxisLabel = "Some Value";
+
   switch(visualSelector.selectedOptions[0].value){
     case "histogram":
       //we only visualize one parameter for histograms, so preprocess data then render
@@ -225,8 +248,18 @@ function renderVisualization(){
       renderGenericTable("whiteboard",csvData,selectedCsvDataFields);
       note.innerHTML = "";
       break;
+    case "trendplot":
+      if(tsSelector.selectedOptions.length == 0){
+        alert("You didn't select a field to use as x-axis for plots");
+        return;
+      }else{
+        renderGenericTrendplot("whiteboard",csvData,tsSelector.selectedOptions[0].value,selectedCsvDataFields,settings);
+        note.innerHTML = "";
+      }
+      break;
     case "timeseries":
     default:
+      settings.xAxisLabel = "Time";
       if(tsSelector.selectedOptions.length == 0){
         alert("You didn't select a timestamp field to use as x-axis for time series");
         return;
